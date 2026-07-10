@@ -65,7 +65,7 @@ func Connect(dbHost, dbName string) *gorm.DB {
 
 	// Run AutoMigrate
 	utils.Log.Info("Running database migrations...")
-	if err := db.AutoMigrate(&model.User{}, &model.Token{}, &model.Role{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.Token{}, &model.Role{}, &model.Attendance{}); err != nil {
 		utils.Log.Errorf("Failed to auto-migrate tables: %v", err)
 	} else {
 		utils.Log.Info("Database migrations completed successfully")
@@ -156,6 +156,153 @@ func seedDatabase(db *gorm.DB) {
 				utils.Log.Errorf("Failed to seed admin user: %v", err)
 			} else {
 				utils.Log.Info("Successfully seeded legacy admin user: admin@hris.com / admin123")
+			}
+		}
+	}
+
+	// 4. Seed Attendance Records
+	utils.Log.Info("Seeding default attendance records...")
+	var attCount int64
+	db.Model(&model.Attendance{}).Count(&attCount)
+	if attCount == 0 {
+		lat1 := -0.502
+		lng1 := 101.445
+		lat2 := -0.504
+		lng2 := 101.448
+		lat3 := -6.200
+		lng3 := 106.816
+		lat4 := -1.265
+		lng4 := 116.890
+		lat5 := -0.510
+		lng5 := 101.440
+
+		attendances := []model.Attendance{
+			{
+				ID:             "ATT-1992",
+				Name:           "Ahmad Rizki",
+				Role:           "Heavy Equipment Operator",
+				AvatarInitials: "AR",
+				Shift:          "Morning (08:00 - 17:00)",
+				ClockIn:        "07:45 AM",
+				ClockOut:       "18:00 PM",
+				Site:           "Site Alpha",
+				Department:     "Operations",
+				Latitude:       &lat1,
+				Longitude:      &lng1,
+				Status:         "Present",
+				HasOvertime:    true,
+				CreatedAt:      time.Now(),
+				UpdatedAt:      time.Now(),
+			},
+			{
+				ID:             "ATT-1993",
+				Name:           "Budi Santoso",
+				Role:           "Site Supervisor",
+				AvatarInitials: "BS",
+				Shift:          "Morning (08:00 - 17:00)",
+				ClockIn:        "08:15 AM",
+				ClockOut:       "18:00 PM",
+				Site:           "Site Alpha",
+				Department:     "Operations",
+				Latitude:       &lat2,
+				Longitude:      &lng2,
+				Status:         "Late",
+				HasOvertime:    false,
+				CreatedAt:      time.Now(),
+				UpdatedAt:      time.Now(),
+			},
+			{
+				ID:             "ATT-1994",
+				Name:           "Citra Dewi",
+				Role:           "Logistics Admin",
+				AvatarInitials: "CD",
+				Shift:          "Morning (08:00 - 17:00)",
+				ClockIn:        "07:55 AM",
+				ClockOut:       "18:00 PM",
+				Site:           "Head Office",
+				Department:     "HR",
+				Latitude:       &lat3,
+				Longitude:      &lng3,
+				Status:         "Present",
+				HasOvertime:    false,
+				CreatedAt:      time.Now(),
+				UpdatedAt:      time.Now(),
+			},
+			{
+				ID:             "ATT-1995",
+				Name:           "Doni Pratama",
+				Role:           "Truck Driver",
+				AvatarInitials: "DP",
+				Shift:          "Morning (08:00 - 17:00)",
+				ClockIn:        "08:05 AM",
+				ClockOut:       "18:00 PM",
+				Site:           "Site Beta",
+				Department:     "Logistics",
+				Latitude:       &lat4,
+				Longitude:      &lng4,
+				Status:         "Late",
+				HasOvertime:    false,
+				CreatedAt:      time.Now(),
+				UpdatedAt:      time.Now(),
+			},
+			{
+				ID:             "ATT-1996",
+				Name:           "Eko Wahyudi",
+				Role:           "Mechanic",
+				AvatarInitials: "EW",
+				Shift:          "Morning (08:00 - 17:00)",
+				ClockIn:        "07:55 AM",
+				ClockOut:       "18:00 PM",
+				Site:           "Site Beta",
+				Department:     "Engineering",
+				Latitude:       &lat5,
+				Longitude:      &lng5,
+				Status:         "Present",
+				HasOvertime:    true,
+				CreatedAt:      time.Now(),
+				UpdatedAt:      time.Now(),
+			},
+			{
+				ID:             "ATT-1997",
+				Name:           "Fitriani",
+				Role:           "Warehouse Operator",
+				AvatarInitials: "FT",
+				Shift:          "Morning (08:00 - 17:00)",
+				ClockIn:        "-",
+				ClockOut:       "-",
+				Site:           "Site Alpha",
+				Department:     "Operations",
+				Latitude:       nil,
+				Longitude:      nil,
+				Status:         "Absent",
+				HasOvertime:    false,
+				CreatedAt:      time.Now(),
+				UpdatedAt:      time.Now(),
+			},
+			{
+				ID:             "ATT-1998",
+				Name:           "Hendra Wijaya",
+				Role:           "Welder",
+				AvatarInitials: "HW",
+				Shift:          "Morning (08:00 - 17:00)",
+				ClockIn:        "-",
+				ClockOut:       "-",
+				Site:           "Site Beta",
+				Department:     "Operations",
+				Latitude:       nil,
+				Longitude:      nil,
+				Status:         "On Leave",
+				HasOvertime:    false,
+				CreatedAt:      time.Now(),
+				UpdatedAt:      time.Now(),
+			},
+		}
+
+		for _, att := range attendances {
+			if err := db.Create(&att).Error; err != nil {
+				utils.Log.Errorf("Failed to seed attendance %s: %v", att.ID, err)
+			} else {
+				utils.Log.Infof("Seeded attendance: %s (%s)", att.ID, att.Name)
 			}
 		}
 	}
