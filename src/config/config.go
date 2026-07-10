@@ -2,9 +2,19 @@ package config
 
 import (
 	"app/src/utils"
+	"os"
 
 	"github.com/spf13/viper"
 )
+
+type DatabaseConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	DBName   string
+	SSLMode  string
+}
 
 var (
 	IsProd              bool
@@ -28,6 +38,8 @@ var (
 	GoogleClientID      string
 	GoogleClientSecret  string
 	RedirectURL         string
+
+	DBConfig            DatabaseConfig
 )
 
 func init() {
@@ -44,6 +56,15 @@ func init() {
 	DBPassword = viper.GetString("DB_PASSWORD")
 	DBName = viper.GetString("DB_NAME")
 	DBPort = viper.GetInt("DB_PORT")
+
+	DBConfig = DatabaseConfig{
+		Host:     getEnv("DB_HOST", "localhost"),
+		Port:     getEnv("DB_PORT", "5432"),
+		User:     getEnv("DB_USER", "jody"),
+		Password: getEnv("DB_PASSWORD", "admin12345"),
+		DBName:   getEnv("DB_NAME", "hris"),
+		SSLMode:  getEnv("DB_SSLMODE", "disable"),
+	}
 
 	// jwt configuration
 	JWTSecret = viper.GetString("JWT_SECRET")
@@ -63,6 +84,16 @@ func init() {
 	GoogleClientID = viper.GetString("GOOGLE_CLIENT_ID")
 	GoogleClientSecret = viper.GetString("GOOGLE_CLIENT_SECRET")
 	RedirectURL = viper.GetString("REDIRECT_URL")
+}
+
+func getEnv(key, defaultValue string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	if viper.IsSet(key) {
+		return viper.GetString(key)
+	}
+	return defaultValue
 }
 
 func loadConfig() {

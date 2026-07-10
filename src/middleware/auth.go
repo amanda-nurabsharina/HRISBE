@@ -2,8 +2,10 @@ package middleware
 
 import (
 	"app/src/config"
+	"app/src/database"
 	"app/src/service"
 	"app/src/utils"
+	"encoding/json"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,8 +33,32 @@ func Auth(userService service.UserService, requiredRights ...string) fiber.Handl
 		c.Locals("user", user)
 
 		if len(requiredRights) > 0 {
-			userRights, hasRights := config.RoleRights[user.Role]
-			if (!hasRights || !hasAllRights(userRights, requiredRights)) && c.Params("userId") != userID {
+			// Super admin has access to all resources
+			if user.Role == "super_admin" || user.Role == "super admin" {
+				return c.Next()
+			}
+
+			// Query role from database
+			var accessibleMenusJSON []byte
+			var userRights []string
+			
+			errDb := database.DB.Table("roles").
+				Select("accessible_menus").
+				Where("name = ? AND deleted_at IS NULL", user.Role).
+				Row().Scan(&accessibleMenusJSON)
+
+			if errDb == nil {
+				json.Unmarshal(accessibleMenusJSON, &userRights)
+			} else {
+				// Fallback to config RoleRights
+				var hasRights bool
+				userRights, hasRights = config.RoleRights[user.Role]
+				if !hasRights {
+					return fiber.NewError(fiber.StatusForbidden, "You don't have permission to access this resource")
+				}
+			}
+
+			if !hasAllRights(userRights, requiredRights) && c.Params("userId") != userID {
 				return fiber.NewError(fiber.StatusForbidden, "You don't have permission to access this resource")
 			}
 		}
