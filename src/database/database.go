@@ -65,7 +65,7 @@ func Connect(dbHost, dbName string) *gorm.DB {
 
 	// Run AutoMigrate
 	utils.Log.Info("Running database migrations...")
-	if err := db.AutoMigrate(&model.User{}, &model.Token{}, &model.Role{}, &model.Attendance{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.Token{}, &model.Role{}, &model.Attendance{}, &model.Location{}); err != nil {
 		utils.Log.Errorf("Failed to auto-migrate tables: %v", err)
 	} else {
 		utils.Log.Info("Database migrations completed successfully")
@@ -303,6 +303,57 @@ func seedDatabase(db *gorm.DB) {
 				utils.Log.Errorf("Failed to seed attendance %s: %v", att.ID, err)
 			} else {
 				utils.Log.Infof("Seeded attendance: %s (%s)", att.ID, att.Name)
+			}
+		}
+	}
+
+	// 5. Seed Locations
+	seedLocations(db)
+}
+
+func seedLocations(db *gorm.DB) {
+	utils.Log.Info("Seeding default site locations...")
+	var locCount int64
+	db.Model(&model.Location{}).Count(&locCount)
+	if locCount == 0 {
+		locations := []model.Location{
+			{
+				ID:         "LOC-1",
+				Name:       "Site Alpha",
+				Department: "Operations",
+				Latitude:   -0.502,
+				Longitude:  101.445,
+				Radius:     100, // 100 meters
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
+			},
+			{
+				ID:         "LOC-2",
+				Name:       "Site Beta",
+				Department: "Engineering",
+				Latitude:   -0.510,
+				Longitude:  101.440,
+				Radius:     150, // 150 meters
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
+			},
+			{
+				ID:         "LOC-3",
+				Name:       "Head Office",
+				Department: "HR",
+				Latitude:   -6.200,
+				Longitude:  106.816,
+				Radius:     50, // 50 meters
+				CreatedAt:  time.Now(),
+				UpdatedAt:  time.Now(),
+			},
+		}
+
+		for _, loc := range locations {
+			if err := db.Create(&loc).Error; err != nil {
+				utils.Log.Errorf("Failed to seed location %s: %v", loc.Name, err)
+			} else {
+				utils.Log.Infof("Seeded location: %s (%s)", loc.ID, loc.Name)
 			}
 		}
 	}

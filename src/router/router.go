@@ -19,6 +19,7 @@ func Routes(app *fiber.App, db *gorm.DB) {
 	authService := service.NewAuthService(db, validate, userService, tokenService)
 	roleService := service.NewRoleService(db, validate)
 	attendanceService := service.NewAttendanceService(db)
+	locationService := service.NewLocationService(db, validate)
 
 	v1 := app.Group("/v1")
 
@@ -27,6 +28,7 @@ func Routes(app *fiber.App, db *gorm.DB) {
 	UserRoutes(v1, userService, tokenService)
 	RoleRoutes(v1, roleService, userService)
 	AttendanceRoutes(v1, attendanceService, userService)
+	LocationRoutes(v1, locationService, userService)
 
 	if !config.IsProd {
 		DocsRoutes(v1)
