@@ -43,6 +43,7 @@ var (
 )
 
 func init() {
+	viper.AutomaticEnv()
 	loadConfig()
 
 	// server configuration

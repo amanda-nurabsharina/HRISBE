@@ -12,7 +12,6 @@ RUN apk add --no-cache curl tzdata
 
 WORKDIR /root
 COPY --from=build /app/main .
-COPY --from=build /app/.env .
 
 EXPOSE 3000
 CMD ["./main"]
