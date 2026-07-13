@@ -50,11 +50,11 @@ func setupFiberApp() *fiber.App {
 	app := fiber.New(config.FiberConfig())
 
 	// Middleware setup
+	app.Use(cors.New())
 	app.Use("/v1/auth", middleware.LimiterConfig())
 	app.Use(middleware.LoggerConfig())
 	app.Use(helmet.New())
 	app.Use(compress.New())
-	app.Use(cors.New())
 	app.Use(middleware.RecoverConfig())
 
 	return app
